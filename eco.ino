@@ -52,7 +52,7 @@
 unsigned long int elapsed = 0;
 unsigned long int times = 0;
 bool started = false;
-long double time = 0;
+double time = 0;
 double dist  = 0;
 
 unsigned int TIM16_ReadTCNT1( void )
@@ -89,7 +89,7 @@ void setup(){
   T2_prescaller_O;
   T2_CTC_OCR2A;
   seta_bit(PORTB, 5);
-  OCR2A = 39; // 2.5 microssecond  
+  OCR2A = 199; // 2.5 microssecond  
   T2_int(T2A);
   
 
@@ -102,22 +102,22 @@ void setup(){
 }
 
 void loop(){
+//Serial.println(dist, "%.6f"); 
 }
 
 ISR(INT0_vect){
   // reset and disable first timer
+  //Serial.println(micros());
   unsigned int i= TIM16_ReadTCNT1();
   T1_nint(T1A);
   TCNT1 = 0;
-  time = (((long double)(i+1)*256)/16000000.0)/2;
-  dist = time*SPEED;
-  
-  Serial.println((double)dist, "%.6f"); 
+  time = (((double)(i+1)*256)/16000000.0)/2;
+  dist = time*(double)SPEED;
+  Serial.println(dist, "%.6f"); 
   // reset 2 timer
   TCNT2 = 0;
   times = 0; 
   T2_int(T2A);
-  seta_bit(PORTB, 5);
 }
 
 ISR(T1A_v) {
@@ -139,15 +139,17 @@ ISR(T2A_v){
   // interrupçao OCR2A match (OVF) 
   // Faz o toggle da porta B2.
   // Para gerar a onda de 200khz
-  // Toggle feito em 2.5 microsseconds
+  // Toggle feito em 12.5 microsseconds
   times ++;
-  if (times <= 266){
-    // (267/2) ondas da 0.000665 segundos
+  if (times <= 111){
+    // ((212)*(1/40khz))/2 ondas da 1.32ms ≃ 1m
     inverte_bit(PORTB,5);
     return;
   } else {
+     inverte_bit(PORTB,5);
      T2_nint(T2A); 
      T1_int(T1A);
-     TCNT1 = 42;// 42 * 1/(16Mhz/256) ~= 0.00666 sec
+     TCNT1 = 84;// 83 * 1/(16Mhz/256) ~= 1.32 ms
+     
   }
 }
