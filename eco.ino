@@ -49,9 +49,10 @@
 
 // ---- Helpers --- //
 
-unsigned long int elapsed = 0;
-unsigned long int times = 0;
+unsigned int elapsed = 0;
+unsigned int times = 0;
 bool toprint = false;
+bool enable = false;
 double time = 0;
 double dist  = 0;
 
@@ -78,10 +79,18 @@ void printDistance( void )
   sreg = SREG;
   /* Disable interrupts */
   cli();
-  /* Read TCNT1 into i */
+  /* Print distance*/
   Serial.println(dist, "%.6f");
   /* Restore global interrupt flag */
   SREG = sreg;
+}
+
+void reset() {
+  T1_nint(T1A);
+  T2_nint(T2A);
+  TCNT1 = 0; 
+  TCNT2 = 0;
+  times = 0;
 }
 
 // --- Helpers --- //
@@ -91,27 +100,23 @@ void printDistance( void )
 
 void setup(){
   Serial.begin(9600);
-  // configura o timer 1 para contar o tempo de retorno
-  // e desativar o timer 2 em 1 ms.
+  // configura o timer 1 para contar ate o tempo de retorno maximo
   T1_clear;                 // limpa registradores de configuracao do TIMER1
   T1_CTC_OCR1A;             // modo: CTC - overflow em OCR1A
   T1_prescaller_256;        // prescaller TIMER1 256
-  OCR1A = 4124;             // (tempo_s*clock)/prescaller-1 = (66ms*16Mhz)/(256-1) = 4124
+  OCR1A = 4124;             // (tempo_s*clock)/prescaller-1 = (66ms*16Mhz)/(256)-1 = 4124
+  
   // configura o timer 2
   T2_clear;
   T2_prescaller_O;
   T2_CTC_OCR2A;
-  seta_bit(PORTB, 5);
-  OCR2A = 199; // 2.5 microssecond  
-  T2_int(T2A);
+  OCR2A = 199; // 12.5 microssecond  (40khz) 
+  
+ 
+  EICRA = 1<<ISC01|1<<ISC11;         // Seta o modo de interrupcao pra quando tiver uma descida.
+  EIMSK = 1<<INT0|1<<INT1;          // habilitacao para a chamada da interrupcao em INT0 e INT1.
   
 
-  // interrupcoes externas para ligar os timers 1 e 2.
-  // Habilita o vetor de interrupcao do OCR2A
-
- 
-  EICRA = 1<<ISC01;         // Seta o modo de interrupcao pra quando tiver uma mudanca no estado logico.
-  EIMSK = 1<<INT0;          // habilitacao para a chamada da interrupcao em INT0.
 }
 
 void loop(){
@@ -122,33 +127,33 @@ void loop(){
 }
 
 ISR(INT0_vect){
-  // reset and disable first timer
-  //Serial.println(micros());
+  // calc distance
+  //unsigned int m = micros();
+  //Serial.println(m - elapsed);
   unsigned int i= TIM16_ReadTCNT1();
-  T1_nint(T1A);
-  TCNT1 = 0;
   time = (((double)(i+1)*256)/16000000.0)/2;
   dist = time*(double)SPEED;
-  // reset 2 timer
-  TCNT2 = 0;
-  times = 0; 
-  T2_int(T2A);
+  // reset timers
+  reset();
   toprint = true;
+  enable = false;
+}
+
+ISR(INT1_vect){
+ if (!enable) {
+   enable = true; 
+   reset();  
+   T2_int(T2A);
+ } 
 }
 
 ISR(T1A_v) {
   // interrupcao OCR1A match 
   // ocorre na distancia maxima "overflow" do timer 1.
   // 50m
-  // interrupcao que ocorre quando chega em 1ms pra desligar o timer2
-  // Reseta os timer e reseta o ciclo
-  T1_nint(T1A);
-  TCNT1 = 0;
-  T1_nint(T1A);   
-  TCNT1 = 0;  
-  TCNT2 = 0;
-  times=0;
-  T2_int(T2A);
+  dist = 50;
+  toprint = true;
+  reset();
 }
 
 ISR(T2A_v){
@@ -165,7 +170,7 @@ ISR(T2A_v){
      inverte_bit(PORTB,5);
      T2_nint(T2A); 
      T1_int(T1A);
-     TCNT1 = 84;// 83 * 1/(16Mhz/256) ~= 1.32 ms
-     
+     TCNT1 = 84;// 83 * 1/(16Mhz/256) ~= 1.32 ms  
   }
+ 
 }
