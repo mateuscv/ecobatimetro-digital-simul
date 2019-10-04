@@ -51,7 +51,7 @@
 
 unsigned long int elapsed = 0;
 unsigned long int times = 0;
-bool started = false;
+bool toprint = false;
 double time = 0;
 double dist  = 0;
 
@@ -70,6 +70,19 @@ unsigned int TIM16_ReadTCNT1( void )
   return i;
 }
 
+void printDistance( void )
+{
+  unsigned char sreg;
+  double i;
+  /* Save global interrupt flag */
+  sreg = SREG;
+  /* Disable interrupts */
+  cli();
+  /* Read TCNT1 into i */
+  Serial.println(dist, "%.6f");
+  /* Restore global interrupt flag */
+  SREG = sreg;
+}
 
 // --- Helpers --- //
 
@@ -102,7 +115,10 @@ void setup(){
 }
 
 void loop(){
-//Serial.println(dist, "%.6f"); 
+ if (toprint){
+    printDistance();
+    toprint = false;
+ }
 }
 
 ISR(INT0_vect){
@@ -113,11 +129,11 @@ ISR(INT0_vect){
   TCNT1 = 0;
   time = (((double)(i+1)*256)/16000000.0)/2;
   dist = time*(double)SPEED;
-  Serial.println(dist, "%.6f"); 
   // reset 2 timer
   TCNT2 = 0;
   times = 0; 
   T2_int(T2A);
+  toprint = true;
 }
 
 ISR(T1A_v) {
