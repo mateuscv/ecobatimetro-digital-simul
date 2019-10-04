@@ -1,4 +1,4 @@
-//--------------- MACROS Genericas ---------------//
+﻿//--------------- MACROS Genericas ---------------//
 #define clear_bit(p,b) (p&=~(0b1<<b))
 #define seta_bit(p,b) (p|=0b1<<b)
 #define inverte_bit(p,b) (p^=0b1<<b)
@@ -29,19 +29,24 @@
 #define T1B_v TIMER1_COMPB_vect                  // bit habilitar interr T1B em TIMSK1
 //////////////////////
 #define 0VF 0                                    // bit habilitacao de interrupcao por OVF de TIMSK1 em overflow
-#define T2A 1                                    // bit habilitacao de interrupcao por T1A de TIMSK1 no R (OCFA)
-#define T2B 2                                    // bit habilitacao de interrupcao por T1B de TIMSK1 no R (OCFB)
+#define T2A 1                                    // bit habilitacao de interrupcao por T2A de TIMSK1 no R (OCFA)
+#define T2B 2                                    // bit habilitacao de interrupcao por T2B de TIMSK1 no R (OCFB)
 #define T2_prescaller_8 seta_bit(TCCR2B,CA21)    // prescaller 8 (CA21)
 #define T2_int(x) seta_bit(TIMSK2,x);            // habilita interrupção (OVF/T2A/T2B)
 #define T2A_v TIMER2_COMPA_vect                  // bit habilitar interr T2A em TIMSK2
 #define T2B_v TIMER2_COMPB_vect                  // bit habilitar interr T2B em TIMSK2
 
+
 void setup(){
  saida_B(2);
  T2_prescaller_8;
+ seta_bit(PORTB,2);
  T2_int(T2B);
- T2_int(T1B);
- OCFA=5
+ T2_int(T2A);
+ OCR2A=10;  // ou 00001010 //  5*10^-6 s  tempo
+ OCFA=10;  // ou 00001010 //  5*10^-6 s
+ OCFB=5;   // ou 00000101 //2,5*10^-6 s
+
  
 
 }
@@ -50,10 +55,10 @@ void loop(){
 
 }
 
-ISR(T2A_v){              // interrupçao OCR1A match (OVF)
-  seta_bit(PORTB,2);     // coloca PB5 em 5V
+ISR(T2B_v){              // interrupçao OCR2B match 
+  clear_bit(PORTB,2);     // coloca PB5 em 0V
 }
 
-ISR(T2B_v){              // interrupçao OCR1B match
-  clear_bit(PORTB,2);    // coloca PB5 em 0V
+ISR(T2A_v){              // interrupçao OCR2A match (OVF)
+  seta_bit(PORTB,2);    // coloca PB5 em 5V
 }
