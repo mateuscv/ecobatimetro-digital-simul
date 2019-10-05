@@ -96,8 +96,6 @@ void reset() {
 // --- Helpers --- //
 
 
-
-
 void setup(){
   Serial.begin(9600);
   // configura o timer 1 para contar ate o tempo de retorno maximo
