@@ -120,8 +120,9 @@ ISR(T2A_v){
 ISR(T1A_v) {
   // Interrupção OCR1A match, ocorre no "overflow" do TIMER 1
   dist = 50; // Se a distância for maior que 50 m, força para ser 50 m.
-  toprint = true;
   reset();
+  toprint = true;
+  enable = false;
 }
 
 ISR(INT0_vect){ // pino D2
