@@ -2,17 +2,17 @@ English: Digital simulation of an echo sounder, to be opened only with SimulIDE.
 
 --
 
-Simulação digital do funcionamento de um ecobatímetro. Trabalho desenvolvido para a disciplina de Sistemas Digitais no curso de Engenharia de Computação FURG, 2019.
+SimulaÃ§Ã£o digital do funcionamento de um ecobatÃ­metro. Trabalho desenvolvido para a disciplina de Sistemas Digitais no curso de Engenharia de ComputaÃ§Ã£o FURG, 2019.
 
 Autores:
-MATEUS CAPPELLARI VIEIRA
-PRÍCILLA KAREN SUZANO
-RITA ALAMINO
-THALES DE OLIVEIRA
-THAYLLOR DEVOS PERES DOS SANTOS
+MATEUS CAPPELLARI VIEIRA,
+PRÃCILLA KAREN SUZANO,
+RITA ALAMINO,
+THALES DE OLIVEIRA,
+THAYLLOR DEVOS PERES DOS SANTOS,
 WANDERSON DE OLIVEIRA PAES
 
 Arquivos:
-SD_Ecobatimetro.pdf -> relatório
-eco.ino -> arquivo do código
+SD_Ecobatimetro.pdf -> relatÃ³rio
+eco.ino -> arquivo do cÃ³digo
 eco.simu -> arquivo com o circuito, a ser aberto no SimulIDE
